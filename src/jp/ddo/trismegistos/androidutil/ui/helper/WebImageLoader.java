@@ -20,22 +20,26 @@ import android.util.Log;
  */
 public class WebImageLoader extends AbstractAsyncTaskLoader<Bitmap> {
 
+	/** タグ。 */
 	private static final String TAG = WebImageLoader.class.getSimpleName();
 
+	/** キャッシュ管理オブジェクト。 */
+	private ImageCache imageCache;
+
+	/** 画像URL。 */
 	private String url;
-	private File cacheDir;
 
 	/**
 	 * コンストラクタ。
 	 * 
-	 * @param context
-	 * @param url
-	 * @param cacheDir
+	 * @param context コンテキスト
+	 * @param url 画像URL
+	 * @param imageCache キャッシュ管理オブジェクト
 	 */
-	public WebImageLoader(final Context context, final String url, final File cacheDir) {
+	public WebImageLoader(final Context context, final String url, final ImageCache imageCache) {
 		super(context);
 		this.url = url;
-		this.cacheDir = cacheDir;
+		this.imageCache = imageCache;
 	}
 
 	/**
@@ -59,27 +63,29 @@ public class WebImageLoader extends AbstractAsyncTaskLoader<Bitmap> {
 			in = con.getInputStream();
 
 			Bitmap bitmap = null;
-			if (cacheDir != null) {
-				if (cacheDir.exists() == false) {
-					cacheDir.mkdir();
+			if (imageCache != null) {
+				if (imageCache.isFileCache()) {
+					final byte[] buf = new byte[1024];
+					int len = 0;
+					final File localFile = new File(imageCache.getCacheDir(),
+							ImageCache.getFileName(url));
+					fos = new FileOutputStream(localFile);
+					while ((len = in.read(buf)) > -1) {
+						fos.write(buf, 0, len);
+					}
+					fos.flush();
+					bitmap = BitmapFactory.decodeFile(localFile.getPath());
 				}
-				final byte[] buf = new byte[1024];
-				int len = 0;
-				final File localFile = new File(cacheDir, ImageCache.getFileName(url));
-				fos = new FileOutputStream(localFile);
-				while ((len = in.read(buf)) > -1) {
-					fos.write(buf, 0, len);
+				if (bitmap == null) {
+					bitmap = BitmapFactory.decodeStream(in);
 				}
-				fos.flush();
-				bitmap = BitmapFactory.decodeFile(localFile.getPath());
-			}
-			if (bitmap == null) {
+				imageCache.saveBitmap(url, bitmap);
+			} else {
 				bitmap = BitmapFactory.decodeStream(in);
 			}
-			ImageCache.saveBitmap(cacheDir, url, bitmap);
 			return bitmap;
 		} catch (final Exception e) {
-			Log.e(TAG, e.getMessage());
+			Log.e(TAG, "" + e.getMessage());
 		} finally {
 			if (con != null) {
 				try {

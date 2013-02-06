@@ -2,6 +2,7 @@ package jp.ddo.trismegistos.androidutil.ui.helper;
 
 import java.io.File;
 
+import jp.ddo.trismegistos.androidutil.file.FileUtil;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.util.LruCache;
@@ -15,33 +16,74 @@ import android.util.Log;
  */
 public class ImageCache {
 
+	/** タグ。 */
 	private static final String TAG = ImageCache.class.getSimpleName();
 
+	/** デフォルトキャッシュサイズ 50MB */
 	private static final int DEFAULT_CACHE_SIZE = 50 * 1024 * 1024;
 
+	/** キャッシュオブジェクト。 */
+	private LruCache<String, Bitmap> cache;
+
+	/** ファイルキャッシュディレクトリ。 */
+	private File cacheDir;
+
 	/**
-	 * プライベートコンストラクタ。
+	 * コンストラクタ。<br>
+	 * キャッシュサイズを50MBとしてキャッシュを作成する。
+	 * 
+	 * @param cacheDir ファイルキャッシュディレクトリ
 	 */
-	private ImageCache() {
+	public ImageCache(final File cacheDir) {
+		this.cacheDir = cacheDir;
+		cache = new Cache(DEFAULT_CACHE_SIZE);
+		createCacheDir();
 	}
 
-	private static LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(DEFAULT_CACHE_SIZE) {
-		@Override
-		protected int sizeOf(final String key, final Bitmap value) {
-			return value.getRowBytes() * value.getHeight();
+	/**
+	 * コンストラクタ。<br>
+	 * 指定したキャッシュサイズでキャッシュを作成する。
+	 * 
+	 * @param cacheDir ファイルキャッシュディレクトリ
+	 * @param cacheSize キャッシュサイズ(Byte)
+	 */
+	public ImageCache(final File cacheDir, int cacheSize) {
+		this.cacheDir = cacheDir;
+		cache = new Cache(cacheSize);
+		createCacheDir();
+	}
+
+	/**
+	 * キャッシュディレクトリを作成する。<br>
+	 * 作成に失敗した場合は、ファイルキャッシュなしとして処理を続行するようにしている。
+	 */
+	private void createCacheDir() {
+		if (cacheDir != null) {
+			if (FileUtil.mkdir(cacheDir) == false) {
+				Log.w(TAG, "CREATE CacheDir is Failed. CacheDir is " + cacheDir.getAbsolutePath());
+				cacheDir = null;
+			}
 		}
-	};
-
-	public static String getFileName(final String url) {
-		int hash = url.hashCode();
-		return String.valueOf(hash);
 	}
 
-	public static void saveBitmap(final File cacheDir, final String url, final Bitmap bitmap) {
+	/**
+	 * Bitmapをメモリキャッシュする。
+	 * 
+	 * @param url 画像のURL
+	 * @param bitmap 画像のBitmap
+	 */
+	public void saveBitmap(final String url, final Bitmap bitmap) {
 		cache.put(url, bitmap);
 	}
 
-	public static Bitmap getImage(final File cacheDir, final String url) {
+	/**
+	 * キャッシュから画像のBitmapを取得する。<br>
+	 * メモリキャッシュ→ファイルキャッシュの順に取得する。
+	 * 
+	 * @param url 元画像ファイルのURL
+	 * @return 画像のBitmap
+	 */
+	public Bitmap getImage(final String url) {
 
 		final Bitmap bm = cache.get(url);
 		if (bm != null) {
@@ -66,25 +108,37 @@ public class ImageCache {
 		return bitmap;
 	}
 
-	public static void memoryCacheClear() {
+	/**
+	 * メモリキャッシュを削除する。
+	 */
+	public void memoryCacheClear() {
 		cache.evictAll();
 	}
 
-	public static void deleteAll(final File cacheDir) {
-		if (!cacheDir.isDirectory()) {
+	/**
+	 * ファイルキャッシュを削除する。
+	 */
+	public void deleteAll() {
+		if (cacheDir != null && cacheDir.isDirectory() == false) {
 			return;
 		}
+
 		final File[] files = cacheDir.listFiles();
 		for (final File file : files) {
 			if (file.isFile()) {
 				if (!file.delete()) {
-					Log.v("file", "file delete false");
+					Log.v(TAG, "file delete false");
 				}
 			}
 		}
 	}
 
-	public static long dirSize(final File cacheDir) {
+	/**
+	 * ファイルキャッシュディレクトリのサイズを取得する。
+	 * 
+	 * @return ファイルキャッシュディレクトリのサイズ
+	 */
+	public long dirSize() {
 		long size = 0L;
 		if (cacheDir == null) {
 			return size;
@@ -99,12 +153,55 @@ public class ImageCache {
 		return size;
 	}
 
-	public static void setCacheFileSize(int size) {
-		cache = new LruCache<String, Bitmap>(size == 0 ? DEFAULT_CACHE_SIZE : size) {
-			@Override
-			protected int sizeOf(final String key, final Bitmap value) {
-				return value.getRowBytes() * value.getHeight();
-			}
-		};
+	/**
+	 * ファイル名を取得する。
+	 * 
+	 * @param url 画像のURL
+	 * @return 画像ファイル名。
+	 */
+	public static String getFileName(final String url) {
+		return String.valueOf(url.hashCode());
+	}
+
+	/**
+	 * ファイルキャッシュが可能かどうかを返す。
+	 * 
+	 * @return ファイルキャッシュが可能ならばtrue, 不可能ならばfalse
+	 */
+	public boolean isFileCache() {
+		return cacheDir != null;
+	}
+
+	/**
+	 * キャッシュディレクトリを取得する。
+	 * 
+	 * @return キャッシュディレクトリ
+	 */
+	public File getCacheDir() {
+		return cacheDir;
+	}
+
+	/**
+	 * SupportLibraryのLruCacheのバグを修正したLruCacheクラス。
+	 * 
+	 * @author y_sugasawa
+	 * @since 2013/02/06
+	 */
+	class Cache extends LruCache<String, Bitmap> {
+
+		/**
+		 * コンストラクタ。
+		 * 
+		 * @param maxSize 最大キャッシュサイズ
+		 */
+		public Cache(int maxSize) {
+			super(maxSize);
+		}
+
+		@Override
+		protected int sizeOf(final String key, final Bitmap value) {
+			return value.getRowBytes() * value.getHeight();
+		}
+
 	}
 }
