@@ -11,7 +11,6 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import android.widget.ImageView;
 import android.widget.ViewFlipper;
 
 /**
@@ -26,8 +25,7 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
 	/** タグ。 */
 	private static final String TAG = WebImageView.class.getSimpleName();
 
-	/** ImageView。 */
-	private ImageView image;
+	private ScalableView image;
 
 	/** 画像URL。 */
 	private String url;
@@ -37,6 +35,8 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
 
 	/** キャッシュ管理オブジェクト。 */
 	private ImageCache imageCache;
+
+	private boolean scalable = false;
 
 	/**
 	 * コンストラクタ。
@@ -49,7 +49,7 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		inflater.inflate(R.layout.loading, this);
 
-		image = new ImageView(context);
+		image = new ScalableView(context);
 		addView(image);
 	}
 
@@ -66,7 +66,7 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		inflater.inflate(R.layout.loading, this);
 
-		image = new ImageView(context);
+		image = new ScalableView(context);
 		addView(image);
 	}
 
@@ -74,6 +74,14 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
 	 * 画像の取得、キャッシュ保存、表示を行う。
 	 */
 	public void draw() {
+		if (scalable) {
+			setClickable(true);
+			setFocusable(true);
+			setFocusableInTouchMode(true);
+			image.setClickable(true);
+			image.setFocusable(true);
+			image.setFocusableInTouchMode(true);
+		}
 		if (url == null) {
 			image.setImageResource(defaultImage);
 			if (getDisplayedChild() == 0) {
@@ -159,6 +167,10 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
 	 */
 	public void setImageCache(final ImageCache imageCache) {
 		this.imageCache = imageCache;
+	}
+
+	public void setScalable(boolean scalable) {
+		this.scalable = scalable;
 	}
 
 }
