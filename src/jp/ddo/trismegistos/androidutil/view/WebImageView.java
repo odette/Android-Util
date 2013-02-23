@@ -128,7 +128,7 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
             showPrevious();
         }
         if (getContext() instanceof FragmentActivity) {
-            ((FragmentActivity) getContext()).getSupportLoaderManager().restartLoader(
+            ((FragmentActivity) getContext()).getSupportLoaderManager().initLoader(
                     url.hashCode(), null, this);
         } else {
             throw new ClassCastException("getContext() is not FragmentActivity.");
