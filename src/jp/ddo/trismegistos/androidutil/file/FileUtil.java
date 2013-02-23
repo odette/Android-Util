@@ -1,3 +1,4 @@
+
 package jp.ddo.trismegistos.androidutil.file;
 
 import java.io.File;
@@ -13,65 +14,68 @@ import android.util.Log;
  */
 public class FileUtil {
 
-	/** タグ。 */
-	private static final String TAG = FileUtil.class.getSimpleName();
+    /** タグ。 */
+    private static final String TAG = FileUtil.class.getSimpleName();
 
-	/**
-	 * プライベートコンストラクタ。
-	 */
-	private FileUtil() {
-	}
+    /** ファイル区切り文字。 */
+    public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
-	/**
-	 * SDカードのパスを取得する。
-	 * 
-	 * @return SDカードのパス
-	 */
-	public static String getSdCardPath() {
-		final File file = Environment.getExternalStorageDirectory();
-		return file.getPath();
-	}
+    /**
+     * プライベートコンストラクタ。
+     */
+    private FileUtil() {
+    }
 
-	/**
-	 * 指定したディレクトリを作成する。
-	 * 
-	 * @param dir ディレクトリのパス
-	 * @return ディレクトリが既に存在している、またディレクトリ作成に成功した場合にtrue。それ以外はfalse。
-	 */
-	public static boolean mkdir(final File dir) {
-		if (dir.isDirectory() == false) {
-			if (dir.isFile()) {
-				return false;
-			}
-			return dir.mkdirs();
-		}
-		return true;
-	}
+    /**
+     * SDカードのパスを取得する。
+     * 
+     * @return SDカードのパス
+     */
+    public static String getSdCardPath() {
+        final File file = Environment.getExternalStorageDirectory();
+        return file.getPath();
+    }
 
-	/**
-	 * 指定したファイルorディレクトリを削除する。
-	 * 
-	 * @param file
-	 * @return 全て削除成功ならばtrue、それ以外はfalse
-	 */
-	public static boolean deleteAll(final File file) {
-		boolean isSuccess = true;
-		if (file.isFile()) {
-			if (file.delete() == false) {
-				Log.e(TAG, "DELETE file is Failed. path is " + file.getAbsolutePath());
-				isSuccess = false;
-			}
-		} else if (file.isDirectory()) {
-			for (File f : file.listFiles()) {
-				if (deleteAll(f) == false) {
-					isSuccess = false;
-				}
-			}
-			if (file.delete() == false) {
-				Log.e(TAG, "DELETE file is Failed. path is " + file.getAbsolutePath());
-				isSuccess = false;
-			}
-		}
-		return isSuccess;
-	}
+    /**
+     * 指定したディレクトリを作成する。
+     * 
+     * @param dir ディレクトリのパス
+     * @return ディレクトリが既に存在している、またディレクトリ作成に成功した場合にtrue。それ以外はfalse。
+     */
+    public static boolean mkdir(final File dir) {
+        if (dir.isDirectory() == false) {
+            if (dir.isFile()) {
+                return false;
+            }
+            return dir.mkdirs();
+        }
+        return true;
+    }
+
+    /**
+     * 指定したファイルorディレクトリを削除する。
+     * 
+     * @param file
+     * @return 全て削除成功ならばtrue、それ以外はfalse
+     */
+    public static boolean deleteAll(final File file) {
+        boolean isSuccess = true;
+        if (file.isFile()) {
+            if (file.delete() == false) {
+                Log.e(TAG, "DELETE file is Failed. path is " + file.getAbsolutePath());
+                isSuccess = false;
+            }
+        } else if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                if (deleteAll(f) == false) {
+                    isSuccess = false;
+                }
+            }
+            if (file.delete() == false) {
+                Log.e(TAG, "DELETE file is Failed. path is " + file.getAbsolutePath());
+                isSuccess = false;
+            }
+        }
+        return isSuccess;
+    }
 }
