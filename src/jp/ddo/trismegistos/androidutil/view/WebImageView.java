@@ -75,21 +75,21 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
         addView(image);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setOnClickListener(final OnClickListener cl) {
-        this.cl = cl;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setOnLongClickListener(final OnLongClickListener lcl) {
-        this.lcl = lcl;
-    }
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @Override
+//    public void setOnClickListener(final OnClickListener cl) {
+//        this.cl = cl;
+//    }
+//
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @Override
+//    public void setOnLongClickListener(final OnLongClickListener lcl) {
+//        this.lcl = lcl;
+//    }
 
     /**
      * 画像の取得、キャッシュ保存、表示を行う。
@@ -101,13 +101,13 @@ public class WebImageView extends ViewFlipper implements LoaderCallbacks<Bitmap>
         image.setClickable(scalable);
         image.setFocusable(scalable);
         image.setFocusableInTouchMode(scalable);
-        if (scalable) {
-            image.setOnClickListener(cl);
-            image.setOnLongClickListener(lcl);
-        } else {
-            super.setOnClickListener(cl);
-            super.setOnLongClickListener(lcl);
-        }
+//        if (scalable) {
+//            image.setOnClickListener(cl);
+//            image.setOnLongClickListener(lcl);
+//        } else {
+//            super.setOnClickListener(cl);
+//            super.setOnLongClickListener(lcl);
+//        }
         if (url == null) {
             image.setImageResource(defaultImage);
             if (getDisplayedChild() == 0) {

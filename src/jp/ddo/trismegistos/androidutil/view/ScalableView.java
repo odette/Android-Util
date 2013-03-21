@@ -20,6 +20,7 @@ public class ScalableView extends ImageView implements OnTouchListener {
 
     /** タグ。 */
     private static final String TAG = ScalableView.class.getSimpleName();
+
     private static final float MAX_SCALE = 5;
     private static final float MIN_SCALE = 0.3f;
     private static final float MIN_LENGTH = 30f;
